@@ -1,0 +1,60 @@
+@page "/fetch"
+@using System.Net.Http
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Net.Http.Json
+
+<PageTitle>Fetch Data</PageTitle>
+
+<h3>Fetch Data</h3>
+
+<p><button @onclick="GetData">Fetch Data</button></p>
+
+@if (responseData == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <h4>Response Data</h4>
+        <pre>@responseData</pre>
+    </div>
+}
+
+@code {
+    private string responseData;
+
+    private async Task GetData()
+    {
+        var apiService = new ApiService(Http);
+        string apiUrl = "https://jsonplaceholder.typicode.com/posts/1";
+        responseData = await apiService.GetApiResponseAsync(apiUrl);
+    }
+
+    public class ApiService
+    {
+        private readonly HttpClient _httpClient;
+
+        public ApiService(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public async Task<string> GetApiResponseAsync(string url)
+        {
+            try
+            {
+                HttpResponseMessage response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                string responseBody = await response.Content.ReadAsStringAsync();
+                return responseBody;
+            }
+            catch (HttpRequestException e)
+            {
+                // Handle the exception as per your requirements
+                return $"Request error: {e.Message}";
+            }
+        }
+    }
+}
